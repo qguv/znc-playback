@@ -57,28 +57,28 @@ public:
 
     EModRet OnChanBufferStarting(CChan& chan, CClient& client) override
     {
-        if (!m_play && client.IsCapEnabled(PlaybackCap))
+        if (!m_play && IsEnabled(client))
             return HALTCORE;
         return CONTINUE;
     }
 
     EModRet OnChanBufferPlayLine(CChan& chan, CClient& client, CString& line) override
     {
-        if (!m_play && client.IsCapEnabled(PlaybackCap))
+        if (!m_play && IsEnabled(client))
             return HALTCORE;
         return CONTINUE;
     }
 
     EModRet OnChanBufferEnding(CChan& chan, CClient& client) override
     {
-        if (!m_play && client.IsCapEnabled(PlaybackCap))
+        if (!m_play && IsEnabled(client))
             return HALTCORE;
         return CONTINUE;
     }
 
     EModRet OnPrivBufferPlayLine(CClient& client, CString& line) override
     {
-        if (!m_play && client.IsCapEnabled(PlaybackCap))
+        if (!m_play && IsEnabled(client))
             return HALTCORE;
         return CONTINUE;
     }
@@ -178,7 +178,7 @@ public:
 
     EModRet OnSendToClient(CString& line, CClient& client) override
     {
-        if (client.IsAttached() && client.IsCapEnabled(PlaybackCap) && !line.Token(0).Equals("CAP")) {
+        if (client.IsAttached() && IsEnabled(client) && !line.Token(0).Equals("CAP")) {
             MCString tags = CUtils::GetMessageTags(line);
             if (tags.find("time") == tags.end()) {
                 // CUtils::FormatServerTime() converts to UTC
@@ -280,6 +280,11 @@ private:
         if (limit > 0)
             lines.SetLineCount(limit);
         return lines;
+    }
+
+    bool IsEnabled(CClient& client)
+    {
+        return client.IsCapEnabled(PlaybackCap) || GetLimit(client.GetIdentifier()) != 0;
     }
 
     bool m_play;
